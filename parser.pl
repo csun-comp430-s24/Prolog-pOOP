@@ -57,7 +57,7 @@ vardec([lparen_token, vardec_token, string_token(Type), string_token(Varname), r
     Rest).
 
 %stmt ::= vardec
-stmt(X, Y, Z) :- vardec(X, Y, Z).
+stmt(X, Y, Z) :- vardec(X, Y, Z) ; exp(X, Y, Z).
 
 %stmt ::= `(` `=` var exp `)`
 stmt([lparen_token, equals_token, string_token(Varname)|Rest1],
