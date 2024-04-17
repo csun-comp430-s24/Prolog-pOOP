@@ -19,8 +19,7 @@ string_to_list(String, List, Temp) :-
     Index = 0,
     (   Char = 'lp' ->  append(Temp, ['('], New_Temp), sub_string(String, 1, _, 0, New_String)
     ;   Char = 'rp' ->  append(Temp, [')'], New_Temp), sub_string(String, 1, _, 0, New_String)
-    ;   Char = 'ws' ->  New_Temp = Temp, sub_string(String, 1, _, 0, New_String)
-    ;   Char = 'nl' ->  New_Temp = Temp, sub_string(String, 1, _, 0, New_String)
+    ;   Char = 'ws_or_nl' ->  New_Temp = Temp, sub_string(String, 1, _, 0, New_String)
     ),
     string_to_list(New_String, List, New_Temp).
 
@@ -33,37 +32,24 @@ string_to_list(String, List, Temp) :-
         (   atom_number(Atom, Append) -> !
         ;   Append = Atom
         ),
-        append(Temp, [Append, '('], New_Temp),
-        Start_Index is Index + 1,
-        sub_string(String, Start_Index, _, 0, New_String)
+        append(Temp, [Append, '('], New_Temp)
     ;   Char = 'rp'
     ->  sub_string(String, 0, Index, _, Remove_String),
         string_to_atom(Remove_String, Atom),
         (   atom_number(Atom, Append) -> !
         ;   Append = Atom
         ),
-        append(Temp, [Append, ')'], New_Temp),
-        Start_Index is Index + 1,
-        sub_string(String, Start_Index, _, 0, New_String)
-    ;   Char = 'ws'
+        append(Temp, [Append, ')'], New_Temp)
+    ;   Char = 'ws_or_nl'
     ->  sub_string(String, 0, Index, _, Remove_String),
         string_to_atom(Remove_String, Atom),
         (   atom_number(Atom, Append) -> !
         ;   Append = Atom
         ),
-        append(Temp, [Append], New_Temp),
-        Start_Index is Index + 1,
-        sub_string(String, Start_Index, _, 0, New_String)
-    ;   Char = 'nl'
-    ->  sub_string(String, 0, Index, _, Remove_String),
-        string_to_atom(Remove_String, Atom),
-        (   atom_number(Atom, Append) -> !
-        ;   Append = Atom
-        ),
-        append(Temp, [Append], New_Temp),
-        Start_Index is Index + 1,
-        sub_string(String, Start_Index, _, 0, New_String)
+        append(Temp, [Append], New_Temp)
     ),
+    Start_Index is Index + 1,
+    sub_string(String, Start_Index, _, 0, New_String),
     string_to_list(New_String, List, New_Temp).
 
 go_to_char(String, Index, Char) :-
@@ -85,8 +71,8 @@ go_to_break(String, Index, Char) :-
     (   string_length(String, Index) -> Char = -1, !
     ;   Char_Index = 0 -> Char = 'lp'
     ;   Char_Index = 1 -> Char = 'rp'
-    ;   Char_Index = 2 -> Char = 'ws'
-    ;   Char_Index = 3 -> Char = 'nl'
+    ;   Char_Index = 2 -> Char = 'ws_or_nl'
+    ;   Char_Index = 3 -> Char = 'ws_or_nl'
     ).
 
 
