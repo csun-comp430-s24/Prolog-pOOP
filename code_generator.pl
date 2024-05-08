@@ -2,7 +2,8 @@ generate_one(integer_token(X), [X]).
 generate_one(this_token, ['this']). %Might need to be changed
 generate_one(true_token, ['true']).
 generate_one(false_token, ['false']).
-generate_one(string_token(String), ['"', String, '"']).
+generate_one(string_token(String), ['"', String, '"']). %These two might need to be changed
+generate_one(string_exp(String), ['"', String, '"']).
 
 %Converts (Op Exp1 Exp2) to (Exp1 Op Exp2)
 generate_one(op_exp(op_token(Op), Exp1, Exp2), C_Code) :-
@@ -14,7 +15,7 @@ generate_one(op_exp(op_token(Op), Exp1, Exp2), C_Code) :-
 %Converts (println Exp) to printf("Exp");
 generate_one(println_exp(string_exp(String)), ['println("', String, '");']).
 
-%Converts (println Exp) to printf("%i", Exp); Need to figure out Void
+%Converts (println Exp) to printf("%i", Exp);
 generate_one(println_exp(Exp), C_Code) :-
     generate_one(Exp, Exp_Code),
     append(['println("%i", '|Exp_Code], [');'], C_Code).
@@ -53,8 +54,9 @@ generate_comma_list([Head|Tail], C_Code, Temp) :-
 generate_one(vardec(Type, Varname), [C_Type, Varname, ';']) :-
     (   Type = 'Int' -> C_Type = 'int'
     ;   Type = 'Boolean' -> C_Type = 'bool'
-    ;   Type = 'Void' -> C_Type = '' %Figure this out
     ).
+
+generate_one(vardec('Void', Varname), ['int', Varname, ' = 0;']).
 
 %Converts (vardec type var) for objects to struct type var;
 generate_one(vardec(Type, Varname), ['struct', Type, Varname, ';']).
@@ -75,7 +77,16 @@ generate_one(while_stmt(Exp, Stmts), ['while('|C_Code]) :-
 %break
 generate_one(break_stmt, ['break;']).
 
-%Converts (if exp stmt) to if(exp){stmt} Blocks
+%Converts (if exp stmt) to if(exp){stmt}
+generate_one(if_stmt(Exp, Stmt), ['if('|[[C_Exp, '){'|C_Stmt]|['}']]]) :-
+    generate_one(Exp, C_Exp),
+    generate_one(Stmt, C_Stmt).
+
+%Converts (if exp stmt stmt) to if(exp){stmt} else {stmt}
+generate_one(ifelse_stmt(Exp, Stmt1, Stmt2), ['if(', C_Exp, '){', C_Stmt1, '} else {', C_Stmt2, '}']) :-
+    generate_one(Exp, C_Exp),
+    generate_one(Stmt1, C_Stmt1),
+    generate_one(Stmt2, C_Stmt2).
 
 %return
 generate_one(return_stmt, 'return;').
